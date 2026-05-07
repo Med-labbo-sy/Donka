@@ -4,7 +4,9 @@ use App\Http\Controllers\PageController;
 use App\Http\Controllers\DoctorController;
 
 // Pages publiques
-Route::get('/', [PageController::class, 'home']);
+Route::get('/', function () {
+    return view('welcome');
+});
 Route::get('/doctors', [DoctorController::class, 'index'])->name('doctors.index');
 Route::get('/doctors/{user}', [DoctorController::class, 'show'])->name('doctors.show');
 
@@ -40,6 +42,29 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/doctor/messages', [App\Http\Controllers\Doctor\MessageController::class, 'index'])->name('doctor.messages.index');
     Route::get('/doctor/messages/{conversation}', [App\Http\Controllers\Doctor\MessageController::class, 'show'])->name('doctor.messages.show');
     Route::post('/doctor/messages/{conversation}', [App\Http\Controllers\Doctor\MessageController::class, 'store'])->name('doctor.messages.store');
+
+
+
+    // Langue
+Route::get('/lang/{locale}', [App\Http\Controllers\LanguageController::class, 'switch'])->name('lang.switch');
+
+// Notifications
+Route::middleware('auth')->group(function () {
+    Route::get('/notifications', [App\Http\Controllers\NotificationController::class, 'index'])->name('notifications.index');
+    Route::get('/notifications/count', [App\Http\Controllers\NotificationController::class, 'unreadCount'])->name('notifications.count');
+
+    // Avis patient
+    Route::get('/patient/appointments/{appointment}/review', [App\Http\Controllers\Patient\ReviewController::class, 'create'])->name('patient.review.create');
+    Route::post('/patient/appointments/{appointment}/review', [App\Http\Controllers\Patient\ReviewController::class, 'store'])->name('patient.review.store');
+
+    // Export PDF
+    Route::get('/patient/export/appointments', [App\Http\Controllers\Patient\ExportController::class, 'appointments'])->name('patient.export.appointments');
+
+    // Dates bloquées médecin
+    Route::get('/doctor/blocked-dates', [App\Http\Controllers\Doctor\BlockedDateController::class, 'index'])->name('doctor.blocked-dates.index');
+    Route::post('/doctor/blocked-dates', [App\Http\Controllers\Doctor\BlockedDateController::class, 'store'])->name('doctor.blocked-dates.store');
+    Route::delete('/doctor/blocked-dates/{blockedDate}', [App\Http\Controllers\Doctor\BlockedDateController::class, 'destroy'])->name('doctor.blocked-dates.destroy');
+});
 });
 
 require __DIR__.'/auth.php';

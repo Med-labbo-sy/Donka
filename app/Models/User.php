@@ -58,6 +58,15 @@ class User extends Authenticatable
     {
         return $this->hasMany(Conversation::class, 'doctor_id');
     }
+
+    public function reviews()       { return $this->hasMany(Review::class, 'doctor_id'); }
+    public function blockedDates()  { return $this->hasMany(BlockedDate::class, 'doctor_id'); }
+    public function notifications() { return $this->hasMany(Notification::class); }
+    
+    public function averageRating()
+{
+    return $this->reviews()->avg('rating') ?? 0;
+}
 }
 
 

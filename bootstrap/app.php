@@ -10,9 +10,25 @@ return Application::configure(basePath: dirname(__DIR__))
         commands: __DIR__.'/../routes/console.php',
         health: '/up',
     )
-    ->withMiddleware(function (Middleware $middleware): void {
-        //
-    })
-    ->withExceptions(function (Exceptions $exceptions): void {
-        //
-    })->create();
+   ->withMiddleware(function (Middleware $middleware) {
+    $middleware->alias([
+        'role'       => \App\Http\Middleware\EnsureRole::class,
+        'setlocale'  => \App\Http\Middleware\SetLocale::class,
+    ]);
+    $middleware->web(append: [
+        \App\Http\Middleware\SetLocale::class,
+    ]);
+})
+    ->withExceptions(function (Exceptions $exceptions) {
+        $exceptions->renderable(function (\Illuminate\Database\Eloquent\ModelNotFoundException $e, $request) {
+            if ($request->expectsJson()) {
+                return response()->json(['message' => 'Resource not found'], 404);
+            }
+            return response()->view('errors.404', [], 404);
+        });
+    })->create(); // ← Ajoutez ->create() ici
+    
+
+
+
+    

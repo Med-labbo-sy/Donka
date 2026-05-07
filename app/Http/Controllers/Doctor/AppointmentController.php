@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Doctor;
 use App\Http\Controllers\Controller;
 use App\Models\Appointment;
 use Illuminate\Http\Request;
+use App\Helpers\NotificationHelper;
 
 class AppointmentController extends Controller
 {
@@ -24,28 +25,45 @@ class AppointmentController extends Controller
         return view('doctor.appointments.index', compact('appointments'));
     }
 
-    // Accepter un RDV
+    
+
+    
+
     public function accept(Appointment $appointment)
     {
         $appointment->update(['status' => 'accepted']);
-        return back()->with('success', 'Rendez-vous accepté.');
-    }
+        NotificationHelper::send(
+            $appointment->patient_id,
+            'Rendez-vous accepté',
+            'Dr. ' . auth()->user()->name . ' a accepté votre rendez-vous du ' . $appointment->date,
+            'appointment'
+            );
+            return back()->with('success', 'Rendez-vous accepté.');
+            }
 
-    // Refuser un RDV
     public function refuse(Appointment $appointment)
     {
         $appointment->update(['status' => 'cancelled']);
-        return back()->with('success', 'Rendez-vous refusé.');
-    }
+        NotificationHelper::send(
+            $appointment->patient_id,
+            'Rendez-vous refusé',
+            'Dr. ' . auth()->user()->name . ' a refusé votre rendez-vous du ' . $appointment->date,
+            'appointment'
+            );
+            return back()->with('success', 'Rendez-vous refusé.');
+            }
 
-    // Marquer comme terminé + ajouter notes
     public function complete(Request $request, Appointment $appointment)
     {
         $request->validate(['notes' => 'nullable|string']);
-        $appointment->update([
-            'status' => 'completed',
-            'notes'  => $request->notes,
-        ]);
-        return back()->with('success', 'Rendez-vous marqué comme terminé.');
-    }
+        $appointment->update(['status' => 'completed', 'notes' => $request->notes]);
+        NotificationHelper::send(
+            $appointment->patient_id,
+            'Consultation terminée',
+            'Votre rendez-vous avec Dr. ' . auth()->user()->name . ' est terminé. Laissez un avis !',
+            'appointment'
+            );
+            return back()->with('success', 'Rendez-vous terminé.');
+            }
+    
 }
